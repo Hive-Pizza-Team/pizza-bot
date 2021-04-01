@@ -1,0 +1,6 @@
+[Global]
+BOT_COMMAND_STR = !PIZZA
+ENABLE_COMMENTS = True
+ACCOUNT_NAME = pizzabot
+ACCOUNT_POSTING_KEY = 1234
+HIVE_API_NODE = https://api.deathwing.me

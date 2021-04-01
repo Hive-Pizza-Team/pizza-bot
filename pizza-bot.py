@@ -5,29 +5,25 @@ from beem.account import Account
 from beem.blockchain import Blockchain
 from beem.comment import Comment
 import beem.instance
-import re
 import os
 import jinja2
-import pync
-import time
-from urllib.parse import urlparse
-import json
-import requests
-
-import dateutil.parser
-from datetime import datetime
-import random
+import configparser
 
 ### Global configuration
 BLOCK_STATE_FILE_NAME = 'lastblock.txt'
 
-BOT_COMMAND_STR = '!PIZZA'
-ENABLE_COMMENTS = True
+config = configparser.ConfigParser()
+config.read('pizzabot.config')
 
+BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
+ENABLE_COMMENTS = config['Global']['ENABLE_COMMENTS'] == 'True'
+ACCOUNT_NAME = config['Global']['ACCOUNT_NAME']
+ACCOUNT_POSTING_KEY = config['Global']['ACCOUNT_POSTING_KEY']
+HIVE_API_NODE = config['Global']['HIVE_API_NODE']
 
-ACCOUNT_NAME = "pizzabot"
-ACCOUNT_POSTING_KEY = "1234"
-HIVE_API_NODE = 'https://api.deathwing.me'
+print('Loaded configs:')
+for key in config['Global'].keys():
+    print(key + ' = ' + config['Global'][key])
 
 
 ### END Global configuration
@@ -81,7 +77,7 @@ def hive_posts_stream():
 
     start_block = get_block_number()
 
-    for op in blockchain.stream(opNames=['comment'], start=start_block, threading=True, thread_num=8):
+    for op in blockchain.stream(opNames=['comment'], start=start_block, threading=True, thread_num=4):
 
         set_block_number(op['block_num'])
 
