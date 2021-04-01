@@ -82,8 +82,7 @@ def hive_posts_stream():
     start_block = get_block_number()
 
     for op in blockchain.stream(opNames=['comment'], start=start_block, threading=True, thread_num=8):
-        
-        #print('Block number: %d' % op['block_num'])
+
         set_block_number(op['block_num'])
 
         # how are there posts with no author?
@@ -91,6 +90,7 @@ def hive_posts_stream():
             continue
 
         author_account = op['author']
+        parent_author = op['parent_author']
         reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
         if BOT_COMMAND_STR not in op['body']:
@@ -113,11 +113,16 @@ def hive_posts_stream():
             print("We already replied!")
             continue
 
+        template = jinja2.Template(open('pizza_comment.template','r').read())
+
         if ENABLE_COMMENTS:
             print('Commenting!')
-            template = jinja2.Template(open('pizza_comment.template','r').read())
-            comment_body = template.render(author_account=author_account)
+            comment_body = template.render(author_account=parent_author)
             post.reply(body=comment_body, author=ACCOUNT_NAME)
+        else:
+            print('Demo mode comment:')
+            comment_body = template.render(author_account=parent_author)
+            print(comment_body)
         
 
 if __name__ == '__main__':
