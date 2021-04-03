@@ -1,6 +1,25 @@
 [Global]
+; Command the bot should listen for
 BOT_COMMAND_STR = !PIZZA
+; Disable to stop the bot from posting comments
 ENABLE_COMMENTS = True
+; Account the bot will post from
 ACCOUNT_NAME = pizzabot
+; Posting key for the account
 ACCOUNT_POSTING_KEY = 1234
+; Active key for Hive-Engine transfers
+ACCOUNT_ACTIVE_KEY = 1234
+; Hive API node to use for read/write ops
 HIVE_API_NODE = https://api.deathwing.me
+
+[HiveEngine]
+; Name of Hive-Engine token for gifting
+TOKEN_NAME = PIZZA
+; Minimum balance required for invoking the bot
+MIN_TOKEN_BALANCE = 1
+; Minimum staked balance required for invoking the bot
+MIN_TOKEN_STAKED = 0
+; Disable to stop the bot from making token transfers
+ENABLE_TRANSFERS = False
+; Amount the bot should give when invoked
+TOKEN_GIFT_AMOUNT = 0.01

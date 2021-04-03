@@ -1,2 +1,3 @@
 beem==0.24.19
 Jinja2==2.11.3
+hiveengine==0.2.2
