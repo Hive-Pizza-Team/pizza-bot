@@ -1,6 +1,6 @@
 @{{target_account}}, sorry! You need more {{token_name}} to use this command.
 
-The minimum requirement is {{min_token_balance}} {{token_name}} liquid, and {{min_token_staked}} {{token_name}} staked.
+The minimum requirement is {{min_balance}} {{token_name}} liquid, and {{min_staked}} {{token_name}} staked.
 
 More {{token_name}} is available from [Hive-Engine](https://hive-engine.com/?p=market&t={{token_name}}) or [Tribaldex](https://tribaldex.com/trade/{{token_name}}) 
 
