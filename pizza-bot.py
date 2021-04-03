@@ -8,6 +8,7 @@ import beem.instance
 import os
 import jinja2
 import configparser
+import time
 
 from hiveengine.wallet import Wallet
 
@@ -138,6 +139,8 @@ def hive_posts_stream():
             else:
                 print('Debug mode comment:')
                 print(comment_body)
+                # sleep 3s before continuing
+                time.sleep(3)
 
             continue
 
@@ -153,6 +156,8 @@ def hive_posts_stream():
             if ENABLE_COMMENTS:
                 print('Commenting!')
                 post.reply(body=comment_body, author=ACCOUNT_NAME)
+                # sleep 3s before continuing
+                time.sleep(3)
             else:
                 print('Debug mode comment:')
                 print(comment_body)
@@ -174,6 +179,8 @@ def hive_posts_stream():
         if ENABLE_COMMENTS:
             print('Commenting!')
             post.reply(body=comment_body, author=ACCOUNT_NAME)
+            # sleep 3s before continuing
+            time.sleep(3)
         else:
             print('Debug mode comment:')
             print(comment_body)
