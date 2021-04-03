@@ -130,7 +130,7 @@ def hive_posts_stream():
 
             print('Invoker doesnt meet minimum requirements')
 
-            comment_body = comment_fail_template.render(token_name=TOKEN_NAME, target_account=parent_author, min_balance=min_balance, min_staked=min_staked)
+            comment_body = comment_fail_template.render(token_name=TOKEN_NAME, target_account=author_account, min_balance=min_balance, min_staked=min_staked)
 
             if ENABLE_COMMENTS:
                 print('Commenting!')
