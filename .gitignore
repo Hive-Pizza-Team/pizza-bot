@@ -1,5 +1,7 @@
 # pizza-bot configs
 pizzabot.config
+.DS_Store
+lastblock.txt
 
 
 # Byte-compiled / optimized / DLL files

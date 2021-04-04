@@ -175,7 +175,7 @@ def hive_posts_stream():
             print('[*] Skipping transfer of %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
 
         # Leave a comment to nofify about the transfer
-        comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author)
+        comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT)
         if ENABLE_COMMENTS:
             print('Commenting!')
             post.reply(body=comment_body, author=ACCOUNT_NAME)

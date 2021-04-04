@@ -1,4 +1,4 @@
-@{{target_account}}! Here's some ${{token_name}}!
+@{{target_account}}! I sent you {{token_amount}} ${{token_name}}!
 
 ![](https://images.hive.blog/0x0/https://ipfs.io/ipfs/bafybeid3awxfa5q5wysbkct3o424l6tytcm76hjko7gcc2f644qjfbci6a)
 
