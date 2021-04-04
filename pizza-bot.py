@@ -88,7 +88,7 @@ def hive_posts_stream():
 
     start_block = get_block_number()
 
-    for op in blockchain.stream(opNames=['comment'], start=start_block, threading=True, thread_num=4):
+    for op in blockchain.stream(opNames=['comment'], start=start_block, threading=False, thread_num=1):
 
         set_block_number(op['block_num'])
 
