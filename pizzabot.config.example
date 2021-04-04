@@ -1,6 +1,6 @@
 [Global]
 ; Command the bot should listen for
-BOT_COMMAND_STR = !PIZ
+BOT_COMMAND_STR = !TEST
 ; Disable to stop the bot from posting comments
 ENABLE_COMMENTS = True
 ; Account the bot will post from
@@ -14,7 +14,7 @@ HIVE_API_NODE = https://api.deathwing.me
 
 [HiveEngine]
 ; Name of Hive-Engine token for gifting
-TOKEN_NAME = PIZ
+TOKEN_NAME = TEST
 ; Minimum balance required for invoking the bot
 MIN_TOKEN_BALANCE = 1
 ; Minimum staked balance required for invoking the bot
