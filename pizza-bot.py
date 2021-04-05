@@ -98,6 +98,10 @@ def hive_posts_stream():
 
         author_account = op['author']
         parent_author = op['parent_author']
+
+        if not parent_author:
+            continue
+
         reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
         BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
