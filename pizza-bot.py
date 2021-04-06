@@ -126,6 +126,10 @@ def hive_posts_stream():
         if not parent_author:
             continue
 
+        # no self-tipping
+        if author_account == parent_author:
+            continue
+
         reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
         BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
