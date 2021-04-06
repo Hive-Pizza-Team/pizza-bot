@@ -9,6 +9,7 @@ import os
 import jinja2
 import configparser
 import time
+import requests
 
 from hiveengine.wallet import Wallet
 
@@ -20,6 +21,7 @@ config.read('pizzabot.config')
 
 ENABLE_COMMENTS = config['Global']['ENABLE_COMMENTS'] == 'True'
 ENABLE_TRANSFERS = config['HiveEngine']['ENABLE_TRANSFERS'] == 'True'
+ENABLE_DISCORD = config['Global']['ENABLE_DISCORD'] == 'True'
 
 ACCOUNT_NAME = config['Global']['ACCOUNT_NAME']
 ACCOUNT_POSTING_KEY = config['Global']['ACCOUNT_POSTING_KEY']
@@ -82,6 +84,28 @@ def has_already_replied(post):
     return False
 
 
+def post_comment(parent_post, author, comment_body):
+    if ENABLE_COMMENTS:
+        print('Commenting!')
+        parent_post.reply(body=comment_body, author=author)
+        # sleep 3s before continuing
+        time.sleep(3)
+    else:
+        print('Debug mode comment:')
+        print(comment_body)
+
+def post_discord_message(username, message_body):
+    WEBHOOK_URL = config['Global']['DISCORD_WEBHOOK_URL']
+    payload = {
+        "username": username,
+        "content": message_body
+    }
+
+    try:
+        requests.post(WEBHOOK_URL, data=payload)
+    except:
+        print('Error while sending discord message. Check configs.')
+
 def hive_posts_stream():
 
     blockchain = Blockchain(node=[HIVE_API_NODE])
@@ -105,11 +129,14 @@ def hive_posts_stream():
         reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
         BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
+
         if BOT_COMMAND_STR not in op['body']:
             continue
         else:
-            print('[*] Found BOT command: https://peakd.com/%s in block %s' % (reply_identifier, op['block_num']))
-        
+            message_body = '[*] Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
+            print(message_body)
+            post_discord_message(ACCOUNT_NAME, message_body)
+
         try:
             post = Comment(reply_identifier)
         except beem.exceptions.ContentDoesNotExistsException:
@@ -136,15 +163,7 @@ def hive_posts_stream():
             print('Invoker doesnt meet minimum requirements')
 
             comment_body = comment_fail_template.render(token_name=TOKEN_NAME, target_account=author_account, min_balance=min_balance, min_staked=min_staked)
-
-            if ENABLE_COMMENTS:
-                print('Commenting!')
-                post.reply(body=comment_body, author=ACCOUNT_NAME)
-            else:
-                print('Debug mode comment:')
-                print(comment_body)
-                # sleep 3s before continuing
-                time.sleep(3)
+            post_comment(post, ACCOUNT_NAME, comment_body)
 
             continue
 
@@ -156,18 +175,9 @@ def hive_posts_stream():
             print('Bot wallet is out of stock')
 
             comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
-
-            if ENABLE_COMMENTS:
-                print('Commenting!')
-                post.reply(body=comment_body, author=ACCOUNT_NAME)
-                # sleep 3s before continuing
-                time.sleep(3)
-            else:
-                print('Debug mode comment:')
-                print(comment_body)
+            post_comment(post, ACCOUNT_NAME, comment_body)
 
             continue
-
 
         # transfer
         if ENABLE_TRANSFERS:
@@ -180,14 +190,7 @@ def hive_posts_stream():
 
         # Leave a comment to nofify about the transfer
         comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT)
-        if ENABLE_COMMENTS:
-            print('Commenting!')
-            post.reply(body=comment_body, author=ACCOUNT_NAME)
-            # sleep 3s before continuing
-            time.sleep(3)
-        else:
-            print('Debug mode comment:')
-            print(comment_body)
+        post_comment(post, ACCOUNT_NAME, comment_body)
 
         #break
 

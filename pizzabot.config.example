@@ -11,6 +11,10 @@ ACCOUNT_POSTING_KEY = 1234
 ACCOUNT_ACTIVE_KEY = 1234
 ; Hive API node to use for read/write ops
 HIVE_API_NODE = https://api.deathwing.me
+; Should the bot try to send discord messages?
+ENABLE_DISCORD = False
+; Webhook URL for discord integration - generate from Channel config menu
+DISCORD_WEBHOOK_URL = https://discord/com/api/webhooks/1231321
 
 [HiveEngine]
 ; Name of Hive-Engine token for gifting
