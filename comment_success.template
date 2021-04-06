@@ -1,4 +1,4 @@
-@{{target_account}}! I sent you a slice ({{token_amount}}) of ${{token_name}}](https://hive.pizza)!
+@{{target_account}}! I sent you a slice ({{token_amount}}) of [${{token_name}}](https://hive.pizza)!
 
 [{{ pizza_gifs|random }}](https://hive.pizza)
 gifs by the @stickupboys
