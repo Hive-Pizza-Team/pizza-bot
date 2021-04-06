@@ -137,7 +137,7 @@ def hive_posts_stream():
         if BOT_COMMAND_STR not in op['body']:
             continue
         else:
-            message_body = '[*] Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
+            message_body = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
             print(message_body)
             post_discord_message(ACCOUNT_NAME, message_body)
 
@@ -169,6 +169,10 @@ def hive_posts_stream():
             comment_body = comment_fail_template.render(token_name=TOKEN_NAME, target_account=author_account, min_balance=min_balance, min_staked=min_staked)
             post_comment(post, ACCOUNT_NAME, comment_body)
 
+            message_body = '%s tried to send PIZZA but didnt meet requirements: https://peakd.com/%s' % (author_account, reply_identifier)
+            print(message_body)
+            post_discord_message(ACCOUNT_NAME, message_body)
+
             continue
 
         # check how much TOKEN the bot has
@@ -176,7 +180,9 @@ def hive_posts_stream():
         bot_balance = float(Wallet(author_account).get_token(TOKEN_NAME)['balance'])
         if bot_balance < TOKEN_GIFT_AMOUNT:
 
-            print('Bot wallet is out of stock')
+            message_body = 'Bot wallet has run out of %s' % TOKEN_NAME
+            print(message_body)
+            post_discord_message(ACCOUNT_NAME, message_body)
 
             comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
             post_comment(post, ACCOUNT_NAME, comment_body)
@@ -189,6 +195,10 @@ def hive_posts_stream():
             stm = Steem(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
             wallet = Wallet(ACCOUNT_NAME, steem_instance=stm)
             wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo="")
+
+            message_body = 'I sent %f %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, parent_author)
+            print(message_body)
+            post_discord_message(ACCOUNT_NAME, message_body)
         else:
             print('[*] Skipping transfer of %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
 
