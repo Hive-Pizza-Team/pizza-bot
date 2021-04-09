@@ -29,6 +29,7 @@ HIVE_API_NODE = config['Global']['HIVE_API_NODE']
 
 print('Loaded configs:')
 for key in config['Global'].keys():
+    if '_key' in key: continue # don't log posting/active keys
     print(key + ' = ' + config['Global'][key])
 for key in config['HiveEngine'].keys():
     print(key + ' = ' + config['HiveEngine'][key])
