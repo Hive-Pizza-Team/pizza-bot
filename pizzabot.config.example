@@ -27,3 +27,5 @@ MIN_TOKEN_STAKED = 0
 ENABLE_TRANSFERS = False
 ; Amount the bot should give when invoked
 TOKEN_GIFT_AMOUNT = 0.01
+; Text for HE transfer memos
+TRANSFER_MEMO = Enjoy a slice of $PIZZA on us! Learn more about the $PIZZA project @ https://hive.pizza

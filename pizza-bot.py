@@ -198,7 +198,7 @@ def hive_posts_stream():
             print('[*] Transfering %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
             stm = Steem(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
             wallet = Wallet(ACCOUNT_NAME, steem_instance=stm)
-            wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo="")
+            wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo=config['HiveEngine']['TRANSFER_MEMO'])
 
             message_body = 'I sent %f %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, parent_author)
             print(message_body)
