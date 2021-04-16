@@ -160,8 +160,13 @@ def hive_posts_stream():
         # check how much TOKEN the invoker has
         TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
         wallet_token_info = Wallet(author_account).get_token(TOKEN_NAME)
-        invoker_balance =float(wallet_token_info['balance'])
-        invoker_stake = float(wallet_token_info['stake'])
+
+        if not wallet_token_info:
+            invoker_balance = 0
+            invoker_stake = 0
+        else:
+            invoker_balance = float(wallet_token_info['balance'])
+            invoker_stake = float(wallet_token_info['stake'])
 
         min_balance = float(config['HiveEngine']['MIN_TOKEN_BALANCE'])
         min_staked = float(config['HiveEngine']['MIN_TOKEN_STAKED'])
