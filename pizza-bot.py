@@ -141,8 +141,11 @@ def hive_posts_stream():
         if BOT_COMMAND_STR not in op['body']:
             continue
         else:
-            message_body = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
-            print(message_body)
+
+            debug_message = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
+            print(debug_message)
+            
+            message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
             post_discord_message(ACCOUNT_NAME, message_body)
 
         try:
