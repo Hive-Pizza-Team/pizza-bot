@@ -52,15 +52,13 @@ comment_fail_template = jinja2.Template(open('comment_fail.template','r').read()
 comment_outofstock_template = jinja2.Template(open('comment_outofstock.template','r').read())
 comment_success_template = jinja2.Template(open('comment_success.template','r').read())
 
-
-
 ### sqlite3 database helpers
 
 def db_create_tables():
     db_conn = sqlite3.connect(SQLITE_DATABASE_FILE)
     c = db_conn.cursor()
     c.execute("CREATE TABLE IF NOT EXISTS %s(date TEXT NOT NULL, invoker TEXT NOT NULL, recipient TEXT NOT NULL, block_num INTEGER NOT NULL);" % SQLITE_GIFTS_TABLE)
-    
+
     db_conn.commit()
     db_conn.close()
 
@@ -77,7 +75,7 @@ def db_save_gift(date, invoker, recipient, block_num):
         block_num
         ])
     db_conn.commit()
-    db_conn.close() 
+    db_conn.close()
 
 
 def db_count_gifts(date, invoker):
@@ -89,7 +87,7 @@ def db_count_gifts(date, invoker):
     row = c.fetchone()
 
     db_conn.commit()
-    db_conn.close() 
+    db_conn.close()
 
     return row[0]
 
@@ -250,8 +248,6 @@ def hive_posts_stream():
             invoker_balance = float(wallet_token_info['balance'])
             invoker_stake = float(wallet_token_info['stake'])
 
-        
-
         if not can_gift(author_account, invoker_balance, invoker_stake):
 
             print('Invoker doesnt meet minimum requirements')
@@ -294,9 +290,9 @@ def hive_posts_stream():
             stm = Steem(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
             wallet = Wallet(ACCOUNT_NAME, steem_instance=stm)
             wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo=config['HiveEngine']['TRANSFER_MEMO'])
-          
+
             today = str(date.today())
-            db_save_gift(today, author_account, parent_author)
+            db_save_gift(today, author_account, parent_author, op['block_num'])
 
             message_body = 'I sent %f %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, parent_author)
             print(message_body)
