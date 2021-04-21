@@ -304,7 +304,7 @@ def hive_posts_stream():
         comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
         post_comment(post, ACCOUNT_NAME, comment_body)
 
-        break
+        #break
 
 if __name__ == '__main__':
 
