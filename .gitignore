@@ -2,7 +2,7 @@
 pizzabot.config
 .DS_Store
 lastblock.txt
-
+pizzabot.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

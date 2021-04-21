@@ -10,10 +10,14 @@ import jinja2
 import configparser
 import time
 import requests
+import sqlite3
+from datetime import date
+
 
 from hiveengine.wallet import Wallet
 
 ### Global configuration
+
 BLOCK_STATE_FILE_NAME = 'lastblock.txt'
 
 config = configparser.ConfigParser()
@@ -26,13 +30,21 @@ ENABLE_DISCORD = config['Global']['ENABLE_DISCORD'] == 'True'
 ACCOUNT_NAME = config['Global']['ACCOUNT_NAME']
 ACCOUNT_POSTING_KEY = config['Global']['ACCOUNT_POSTING_KEY']
 HIVE_API_NODE = config['Global']['HIVE_API_NODE']
+HIVE = Steem(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
+beem.instance.set_shared_blockchain_instance(HIVE)
+ACCOUNT = Account(ACCOUNT_NAME)
+
+SQLITE_DATABASE_FILE = 'pizzabot.db'
+SQLITE_GIFTS_TABLE = 'pizza_bot_gifts'
+
+### END Global configuration
+
 
 print('Loaded configs:')
-for key in config['Global'].keys():
-    if '_key' in key: continue # don't log posting/active keys
-    print(key + ' = ' + config['Global'][key])
-for key in config['HiveEngine'].keys():
-    print(key + ' = ' + config['HiveEngine'][key])
+for section in config.keys():
+    for key in config[section].keys():
+        if '_key' in key: continue # don't log posting/active keys
+        print('%s : %s = %s' % (section, key, config[section][key]))
 
 
 # Markdown templates for comments
@@ -40,11 +52,46 @@ comment_fail_template = jinja2.Template(open('comment_fail.template','r').read()
 comment_outofstock_template = jinja2.Template(open('comment_outofstock.template','r').read())
 comment_success_template = jinja2.Template(open('comment_success.template','r').read())
 
-### END Global configuration
 
-HIVE = Steem(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
-beem.instance.set_shared_blockchain_instance(HIVE)
-ACCOUNT = Account(ACCOUNT_NAME)
+
+### sqlite3 database helpers
+
+def db_create_tables():
+    db_conn = sqlite3.connect(SQLITE_DATABASE_FILE)
+    c = db_conn.cursor()
+    c.execute("CREATE TABLE IF NOT EXISTS %s(date TEXT NOT NULL, invoker TEXT NOT NULL, recipient TEXT NOT NULL, block_num INTEGER NOT NULL);" % SQLITE_GIFTS_TABLE)
+    
+    db_conn.commit()
+    db_conn.close()
+
+
+def db_save_gift(date, invoker, recipient, block_num):
+
+    db_conn = sqlite3.connect(SQLITE_DATABASE_FILE)
+    c = db_conn.cursor()
+
+    c.execute('INSERT INTO %s VALUES (?,?,?,?);' % SQLITE_GIFTS_TABLE, [
+        date,
+        invoker,
+        recipient,
+        block_num
+        ])
+    db_conn.commit()
+    db_conn.close() 
+
+
+def db_count_gifts(date, invoker):
+
+    db_conn = sqlite3.connect(SQLITE_DATABASE_FILE)
+    c = db_conn.cursor()
+
+    c.execute("SELECT count(*) FROM %s WHERE date = '%s' AND invoker = '%s';" % (SQLITE_GIFTS_TABLE,date,invoker))
+    row = c.fetchone()
+
+    db_conn.commit()
+    db_conn.close() 
+
+    return row[0]
 
 def get_account_posts(account):
     acc = Account(account)
@@ -110,7 +157,39 @@ def post_discord_message(username, message_body):
     except:
         print('Error while sending discord message. Check configs.')
 
+
+
+def can_gift(invoker_name, invoker_balance, invoker_stake):
+
+    # does invoker meet level 1 requirements?
+    min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
+    min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
+
+    if invoker_balance < min_balance or invoker_stake < min_staked:
+        return False
+
+    # has invoker already reached the level 1 daily limit?
+    today = str(date.today())
+    today_gift_count = db_count_gifts(today, invoker_name)
+
+    print(today_gift_count)
+
+    if today_gift_count >= int(config['AccessLevel1']['MAX_DAILY_GIFTS']):
+        return False
+
+    # does invoker meet level 2 requirements?
+    #min_balance = float(config['AccessLevel2']['MIN_TOKEN_BALANCE'])
+    #min_staked = float(config['AccessLevel2']['MIN_TOKEN_STAKED'])
+
+    # has invoker already reached the level 2 daily limit?
+
+
+    return True
+
+
 def hive_posts_stream():
+
+    db_create_tables()
 
     blockchain = Blockchain(node=[HIVE_API_NODE])
 
@@ -171,14 +250,21 @@ def hive_posts_stream():
             invoker_balance = float(wallet_token_info['balance'])
             invoker_stake = float(wallet_token_info['stake'])
 
-        min_balance = float(config['HiveEngine']['MIN_TOKEN_BALANCE'])
-        min_staked = float(config['HiveEngine']['MIN_TOKEN_STAKED'])
+        
 
-        if invoker_balance < min_balance or invoker_stake < min_staked:
+        if not can_gift(author_account, invoker_balance, invoker_stake):
 
             print('Invoker doesnt meet minimum requirements')
 
-            comment_body = comment_fail_template.render(token_name=TOKEN_NAME, target_account=author_account, min_balance=min_balance, min_staked=min_staked)
+            max_daily_gifts = config['AccessLevel1']['MAX_DAILY_GIFTS']
+            min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
+            min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
+
+            comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
+                                                        target_account=author_account,
+                                                        min_balance=min_balance,
+                                                        min_staked=min_staked,
+                                                        max_daily_gifts=max_daily_gifts)
             post_comment(post, ACCOUNT_NAME, comment_body)
 
             message_body = '%s tried to send PIZZA but didnt meet requirements: https://peakd.com/%s' % (author_account, reply_identifier)
@@ -202,11 +288,15 @@ def hive_posts_stream():
             continue
 
         # transfer
+
         if ENABLE_TRANSFERS:
             print('[*] Transfering %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
             stm = Steem(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
             wallet = Wallet(ACCOUNT_NAME, steem_instance=stm)
             wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo=config['HiveEngine']['TRANSFER_MEMO'])
+          
+            today = str(date.today())
+            db_save_gift(today, author_account, parent_author)
 
             message_body = 'I sent %f %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, parent_author)
             print(message_body)
@@ -218,7 +308,7 @@ def hive_posts_stream():
         comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
         post_comment(post, ACCOUNT_NAME, comment_body)
 
-        #break
+        break
 
 if __name__ == '__main__':
 

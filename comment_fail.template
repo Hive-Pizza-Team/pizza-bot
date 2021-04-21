@@ -2,5 +2,7 @@
 
 The minimum requirement is {{min_balance}} {{token_name}} liquid, and {{min_staked}} {{token_name}} staked.
 
+You can call the bot a maximum of {{max_daily_gifts}} times per day.
+
 More ${{token_name}} is available from [Hive-Engine](https://hive-engine.com/?p=market&t={{token_name}}) or [Tribaldex](https://tribaldex.com/trade/{{token_name}}) 
 

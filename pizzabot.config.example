@@ -19,13 +19,25 @@ DISCORD_WEBHOOK_URL = https://discord/com/api/webhooks/1231321
 [HiveEngine]
 ; Name of Hive-Engine token for gifting
 TOKEN_NAME = TEST
-; Minimum balance required for invoking the bot
-MIN_TOKEN_BALANCE = 1
-; Minimum staked balance required for invoking the bot
-MIN_TOKEN_STAKED = 0
 ; Disable to stop the bot from making token transfers
 ENABLE_TRANSFERS = False
 ; Amount the bot should give when invoked
 TOKEN_GIFT_AMOUNT = 0.01
 ; Text for HE transfer memos
 TRANSFER_MEMO = Enjoy a slice of $PIZZA on us! Learn more about the $PIZZA project @ https://hive.pizza
+
+[AccessLevel1]
+; Minimum balance required for invoking the bot
+MIN_TOKEN_BALANCE = 1
+; Minimum staked balance required for invoking the bot
+MIN_TOKEN_STAKED = 0
+; Maximum # of token gifts per day
+MAX_DAILY_GIFTS = 1
+
+[AccessLevel2]
+; Minimum balance required for invoking the bot
+MIN_TOKEN_BALANCE = 0
+; Minimum staked balance required for invoking the bot
+MIN_TOKEN_STAKED = 50
+; Maximum # of token gifts per day
+MAX_DAILY_GIFTS = 20
