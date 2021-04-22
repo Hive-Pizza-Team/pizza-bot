@@ -51,6 +51,7 @@ for section in config.keys():
 comment_fail_template = jinja2.Template(open('comment_fail.template','r').read())
 comment_outofstock_template = jinja2.Template(open('comment_outofstock.template','r').read())
 comment_success_template = jinja2.Template(open('comment_success.template','r').read())
+comment_daily_limit = jinja2.Template(open('comment_daily_limit.template','r').read())
 
 ### sqlite3 database helpers
 
@@ -157,6 +158,18 @@ def post_discord_message(username, message_body):
 
 
 
+def daily_limit_reached(invoker_name):
+    today = str(date.today())
+    today_gift_count = db_count_gifts(today, invoker_name)
+
+    print(today_gift_count)
+
+    if today_gift_count >= int(config['AccessLevel1']['MAX_DAILY_GIFTS']):
+        return True
+
+    return False
+
+
 def can_gift(invoker_name, invoker_balance, invoker_stake):
 
     # does invoker meet level 1 requirements?
@@ -167,12 +180,7 @@ def can_gift(invoker_name, invoker_balance, invoker_stake):
         return False
 
     # has invoker already reached the level 1 daily limit?
-    today = str(date.today())
-    today_gift_count = db_count_gifts(today, invoker_name)
-
-    print(today_gift_count)
-
-    if today_gift_count >= int(config['AccessLevel1']['MAX_DAILY_GIFTS']):
+    if daily_limit_reached(invoker_name):
         return False
 
     # does invoker meet level 2 requirements?
@@ -256,11 +264,16 @@ def hive_posts_stream():
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
-            comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
+            if daily_limit_reached(author_account):
+                comment_body = comment_daily_limit.render(token_name=TOKEN_NAME,
+                                                          target_account=author_account,
+                                                          max_daily_gifts=max_daily_gifts)
+
+            else:
+                comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
                                                         target_account=author_account,
                                                         min_balance=min_balance,
-                                                        min_staked=min_staked,
-                                                        max_daily_gifts=max_daily_gifts)
+                                                        min_staked=min_staked)
             post_comment(post, ACCOUNT_NAME, comment_body)
 
             message_body = '%s tried to send PIZZA but didnt meet requirements: https://peakd.com/%s' % (author_account, reply_identifier)
