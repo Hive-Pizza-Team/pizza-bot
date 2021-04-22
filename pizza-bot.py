@@ -268,15 +268,15 @@ def hive_posts_stream():
                 comment_body = comment_daily_limit.render(token_name=TOKEN_NAME,
                                                           target_account=author_account,
                                                           max_daily_gifts=max_daily_gifts)
-
+                message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
             else:
                 comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
                                                         target_account=author_account,
                                                         min_balance=min_balance,
                                                         min_staked=min_staked)
-            post_comment(post, ACCOUNT_NAME, comment_body)
+                message_body = '%s tried to send PIZZA but didnt meet requirements.' % (author_account)
 
-            message_body = '%s tried to send PIZZA but didnt meet requirements: https://peakd.com/%s' % (author_account, reply_identifier)
+            post_comment(post, ACCOUNT_NAME, comment_body)
             print(message_body)
             post_discord_message(ACCOUNT_NAME, message_body)
 
