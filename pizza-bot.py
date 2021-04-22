@@ -159,6 +159,10 @@ def post_discord_message(username, message_body):
 
 
 def daily_limit_reached(invoker_name):
+
+    if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
+        return False
+
     today = str(date.today())
     today_gift_count = db_count_gifts(today, invoker_name)
 
