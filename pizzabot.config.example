@@ -43,3 +43,8 @@ MIN_TOKEN_BALANCE = 0
 MIN_TOKEN_STAKED = 50
 ; Maximum # of token gifts per day
 MAX_DAILY_GIFTS = 20
+
+; Look for votes from curation account to hand out tokens
+[VoteWatcher]
+; which account to monitor for upvotes
+FOLLOW_ACCOUNT = mycurationaccount
