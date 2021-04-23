@@ -34,6 +34,9 @@ HIVE = Steem(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
 beem.instance.set_shared_blockchain_instance(HIVE)
 ACCOUNT = Account(ACCOUNT_NAME)
 
+BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
+WEBHOOK_URL = config['Global']['DISCORD_WEBHOOK_URL']
+
 SQLITE_DATABASE_FILE = 'pizzabot.db'
 SQLITE_GIFTS_TABLE = 'pizza_bot_gifts'
 
@@ -51,7 +54,8 @@ for section in config.keys():
 comment_fail_template = jinja2.Template(open('comment_fail.template','r').read())
 comment_outofstock_template = jinja2.Template(open('comment_outofstock.template','r').read())
 comment_success_template = jinja2.Template(open('comment_success.template','r').read())
-comment_daily_limit = jinja2.Template(open('comment_daily_limit.template','r').read())
+comment_daily_limit_template = jinja2.Template(open('comment_daily_limit.template','r').read())
+comment_curation_template = jinja2.Template(open('comment_curation.template','r').read())
 
 ### sqlite3 database helpers
 
@@ -145,7 +149,6 @@ def post_discord_message(username, message_body):
     if not ENABLE_DISCORD:
         return
 
-    WEBHOOK_URL = config['Global']['DISCORD_WEBHOOK_URL']
     payload = {
         "username": username,
         "content": message_body
@@ -205,16 +208,43 @@ def hive_posts_stream():
 
     start_block = get_block_number()
 
-    for op in blockchain.stream(opNames=['comment'], start=start_block, threading=False, thread_num=1):
+    for op in blockchain.stream(opNames=['comment','vote'], start=start_block, threading=False, thread_num=1):
 
         set_block_number(op['block_num'])
 
-        # how are there posts with no author?
-        if 'author' not in op.keys():
-            continue
+        if 'type' in op.keys() and op['type'] == 'vote':
+            if 'voter' in op.keys() and op['voter'] == config['VoteWatcher']['FOLLOW_ACCOUNT']:
+                print('%s -> %s' % (op['voter'], op['author']))
 
-        author_account = op['author']
-        parent_author = op['parent_author']
+                author_account = op['voter']
+                parent_author = op['author']
+                # we reply to post instead of a comment
+                reply_identifier = '@%s/%s' % (parent_author,op['permlink'])
+
+                print('Found curation vote in block # %s - https://peakd.com/%s' % (op['block_num'],reply_identifier)) 
+
+            else:
+                # skip votes from other accounts
+                continue
+
+        else:
+            # it's a comment
+
+            # how are there posts with no author?
+            if 'author' not in op.keys():
+                continue
+
+            author_account = op['author']
+            parent_author = op['parent_author']
+            reply_identifier = '@%s/%s' % (author_account,op['permlink'])
+
+            # skip comments that don't include the bot's command prefix
+            if BOT_COMMAND_STR not in op['body']:
+                continue
+            else:
+                debug_message = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
+                print(debug_message)
+
 
         if not parent_author:
             continue
@@ -223,19 +253,9 @@ def hive_posts_stream():
         if author_account == parent_author:
             continue
 
-        reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
-        BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
-
-        if BOT_COMMAND_STR not in op['body']:
-            continue
-        else:
-
-            debug_message = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
-            print(debug_message)
-            
-            message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
-            post_discord_message(ACCOUNT_NAME, message_body)
+        message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
+        post_discord_message(ACCOUNT_NAME, message_body)
 
         try:
             post = Comment(reply_identifier)
@@ -269,7 +289,7 @@ def hive_posts_stream():
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
             if daily_limit_reached(author_account):
-                comment_body = comment_daily_limit.render(token_name=TOKEN_NAME,
+                comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
                                                           target_account=author_account,
                                                           max_daily_gifts=max_daily_gifts)
                 message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
@@ -318,7 +338,10 @@ def hive_posts_stream():
             print('[*] Skipping transfer of %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
 
         # Leave a comment to nofify about the transfer
-        comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
+        if 'type' in op.keys() and op['type'] == 'vote':
+            comment_body = comment_curation_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
+        else:
+            comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
         post_comment(post, ACCOUNT_NAME, comment_body)
 
         #break
