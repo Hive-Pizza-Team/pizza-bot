@@ -238,6 +238,10 @@ def hive_posts_stream():
             parent_author = op['parent_author']
             reply_identifier = '@%s/%s' % (author_account,op['permlink'])
 
+            if parent_author == ACCOUNT_NAME:
+                message_body = '%s replied with: %s' % (author_account,op['body'])
+                post_discord_message(message_body)
+
             # skip comments that don't include the bot's command prefix
             if BOT_COMMAND_STR not in op['body']:
                 continue
