@@ -161,43 +161,50 @@ def post_discord_message(username, message_body):
 
 
 
-def daily_limit_reached(invoker_name):
-
-    if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
-        return False
+def daily_limit_reached(invoker_name, level=1):
 
     today = str(date.today())
     today_gift_count = db_count_gifts(today, invoker_name)
 
     print(today_gift_count)
 
-    if today_gift_count >= int(config['AccessLevel1']['MAX_DAILY_GIFTS']):
+    access_level = 'AccessLevel%d' % level
+
+    if today_gift_count >= int(config[access_level]['MAX_DAILY_GIFTS']):
         return True
 
     return False
 
 
-def can_gift(invoker_name, invoker_balance, invoker_stake):
+def get_invoker_level(invoker_name, invoker_balance, invoker_stake):
+    # does invoker meet level 2 requirements?
+    min_balance = float(config['AccessLevel2']['MIN_TOKEN_BALANCE'])
+    min_staked = float(config['AccessLevel2']['MIN_TOKEN_STAKED'])
+
+    if invoker_balance >= min_balance and invoker_stake >= min_staked:
+        return 2
 
     # does invoker meet level 1 requirements?
     min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
     min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
-    if invoker_balance < min_balance or invoker_stake < min_staked:
-        return False
+    if invoker_balance >= min_balance and invoker_stake >= min_staked:
+        return 1
 
-    # has invoker already reached the level 1 daily limit?
-    if daily_limit_reached(invoker_name):
-        return False
-
-    # does invoker meet level 2 requirements?
-    #min_balance = float(config['AccessLevel2']['MIN_TOKEN_BALANCE'])
-    #min_staked = float(config['AccessLevel2']['MIN_TOKEN_STAKED'])
-
-    # has invoker already reached the level 2 daily limit?
+    return 0
 
 
-    return True
+def can_gift(invoker_name, invoker_balance, invoker_stake):
+
+    if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
+        return True
+
+    level = get_invoker_level(invoker_name, invoker_balance, invoker_stake)
+
+    if not daily_limit_reached(invoker_name, level):
+        return True
+
+    return False
 
 
 def hive_posts_stream():
@@ -284,11 +291,13 @@ def hive_posts_stream():
             invoker_balance = float(wallet_token_info['balance'])
             invoker_stake = float(wallet_token_info['stake'])
 
+        invoker_level = get_invoker_level(author_account, invoker_balance, invoker_stake)
+
         if not can_gift(author_account, invoker_balance, invoker_stake):
 
             print('Invoker doesnt meet minimum requirements')
 
-            max_daily_gifts = config['AccessLevel1']['MAX_DAILY_GIFTS']
+            max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
