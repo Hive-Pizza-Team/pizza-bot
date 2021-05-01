@@ -297,11 +297,12 @@ def hive_posts_stream():
 
             print('Invoker doesnt meet minimum requirements')
 
-            max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
-            if daily_limit_reached(author_account):
+            if daily_limit_reached(author_account) and invoker_level > 0:
+                max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
+
                 comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
                                                           target_account=author_account,
                                                           max_daily_gifts=max_daily_gifts)
