@@ -325,7 +325,7 @@ def hive_posts_stream():
 
         # check how much TOKEN the bot has
         TOKEN_GIFT_AMOUNT = float(config['HiveEngine']['TOKEN_GIFT_AMOUNT'])
-        bot_balance = float(Wallet(author_account).get_token(TOKEN_NAME)['balance'])
+        bot_balance = float(Wallet(ACCOUNT_NAME).get_token(TOKEN_NAME)['balance'])
         if bot_balance < TOKEN_GIFT_AMOUNT:
 
             message_body = 'Bot wallet has run out of %s' % TOKEN_NAME
