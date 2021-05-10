@@ -4,6 +4,7 @@
 import sqlite3
 import os
 from dotenv import load_dotenv
+import requests
 
 
 SQLITE_DATABASE_FILE = 'pizzabot.db'
