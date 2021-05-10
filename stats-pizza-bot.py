@@ -27,7 +27,7 @@ def post_discord_message(username, message_body):
     }
 
     try:
-        requests.post(WEBHOOK_URL, data=payload)
+        requests.post(DISCORD_STATS_WEBHOOK_URL, data=payload)
     except:
         print('Error while sending discord message. Check configs.')
 
