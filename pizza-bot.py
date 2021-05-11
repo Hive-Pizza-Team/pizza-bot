@@ -226,6 +226,11 @@ def hive_posts_stream():
             if 'voter' in op.keys() and op['voter'] == config['VoteWatcher']['FOLLOW_ACCOUNT']:
                 print('%s -> %s' % (op['voter'], op['author']))
 
+                # skip downvotes
+                if op['weight'] < 0:
+                    print('Downvote')
+                    continue
+
                 author_account = op['voter']
                 parent_author = op['author']
                 # we reply to post instead of a comment
@@ -238,7 +243,7 @@ def hive_posts_stream():
                 continue
 
         else:
-            # it's a comment
+            # it's a comment or post
 
             # how are there posts with no author?
             if 'author' not in op.keys():
