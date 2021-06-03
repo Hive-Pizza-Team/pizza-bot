@@ -363,7 +363,10 @@ def hive_posts_stream():
         if 'type' in op.keys() and op['type'] == 'vote':
             comment_body = comment_curation_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
         else:
-            comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account)
+            today = str(date.today())
+            today_gift_count = db_count_gifts(today, author_account)
+            max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
+            comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account,  today_gift_count=today_gift_count, max_daily_gifts=max_daily_gifts)
         post_comment(post, ACCOUNT_NAME, comment_body)
 
         #break
