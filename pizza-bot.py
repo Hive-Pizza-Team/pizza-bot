@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 '''A script to findm and react to PIZZA commands in comments'''
-from beem import Steem
+from beem import Hive
 from beem.account import Account
 from beem.blockchain import Blockchain
 from beem.comment import Comment
@@ -30,7 +30,8 @@ ENABLE_DISCORD = config['Global']['ENABLE_DISCORD'] == 'True'
 ACCOUNT_NAME = config['Global']['ACCOUNT_NAME']
 ACCOUNT_POSTING_KEY = config['Global']['ACCOUNT_POSTING_KEY']
 HIVE_API_NODE = config['Global']['HIVE_API_NODE']
-HIVE = Steem(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
+HIVE = Hive(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
+HIVE.chain_params['chain_id'] = 'beeab0de00000000000000000000000000000000000000000000000000000000'
 beem.instance.set_shared_blockchain_instance(HIVE)
 ACCOUNT = Account(ACCOUNT_NAME)
 
