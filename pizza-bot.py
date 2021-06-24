@@ -347,8 +347,10 @@ def hive_posts_stream():
 
         if ENABLE_TRANSFERS:
             print('[*] Transfering %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
-            stm = Steem(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
-            wallet = Wallet(ACCOUNT_NAME, steem_instance=stm)
+            hive = Hive(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
+            hive.chain_params['chain_id'] = 'beeab0de00000000000000000000000000000000000000000000000000000000'
+
+            wallet = Wallet(ACCOUNT_NAME, steem_instance=hive)
             wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo=config['HiveEngine']['TRANSFER_MEMO'])
 
             today = str(date.today())
