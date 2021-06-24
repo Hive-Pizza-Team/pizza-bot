@@ -30,7 +30,7 @@ ENABLE_DISCORD = config['Global']['ENABLE_DISCORD'] == 'True'
 ACCOUNT_NAME = config['Global']['ACCOUNT_NAME']
 ACCOUNT_POSTING_KEY = config['Global']['ACCOUNT_POSTING_KEY']
 HIVE_API_NODE = config['Global']['HIVE_API_NODE']
-HIVE = Hive(node=[HIVE_API_NODE], keys=[ACCOUNT_POSTING_KEY])
+HIVE = Hive(node=[HIVE_API_NODE], keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
 HIVE.chain_params['chain_id'] = 'beeab0de00000000000000000000000000000000000000000000000000000000'
 beem.instance.set_shared_blockchain_instance(HIVE)
 ACCOUNT = Account(ACCOUNT_NAME)
@@ -347,10 +347,8 @@ def hive_posts_stream():
 
         if ENABLE_TRANSFERS:
             print('[*] Transfering %f %s from %s to %s' % (TOKEN_GIFT_AMOUNT, TOKEN_NAME, ACCOUNT_NAME, parent_author))
-            hive = Hive(keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
-            hive.chain_params['chain_id'] = 'beeab0de00000000000000000000000000000000000000000000000000000000'
 
-            wallet = Wallet(ACCOUNT_NAME, steem_instance=hive)
+            wallet = Wallet(ACCOUNT_NAME, steem_instance=HIVE)
             wallet.transfer(parent_author, TOKEN_GIFT_AMOUNT, TOKEN_NAME, memo=config['HiveEngine']['TRANSFER_MEMO'])
 
             today = str(date.today())
