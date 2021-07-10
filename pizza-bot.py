@@ -36,6 +36,7 @@ beem.instance.set_shared_blockchain_instance(HIVE)
 ACCOUNT = Account(ACCOUNT_NAME)
 
 BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
+ESP_BOT_COMMAND_STR = config['Global']['ESP_BOT_COMMAND_STR']
 WEBHOOK_URL = config['Global']['DISCORD_WEBHOOK_URL']
 
 SQLITE_DATABASE_FILE = 'pizzabot.db'
@@ -52,11 +53,17 @@ for section in config.keys():
 
 
 # Markdown templates for comments
-comment_fail_template = jinja2.Template(open('comment_fail.template','r').read())
-comment_outofstock_template = jinja2.Template(open('comment_outofstock.template','r').read())
-comment_success_template = jinja2.Template(open('comment_success.template','r').read())
-comment_daily_limit_template = jinja2.Template(open('comment_daily_limit.template','r').read())
-comment_curation_template = jinja2.Template(open('comment_curation.template','r').read())
+comment_fail_template = jinja2.Template(open(os.path.join('templates','comment_fail.template'),'r').read())
+comment_outofstock_template = jinja2.Template(open(os.path.join('templates','comment_outofstock.template'),'r').read())
+comment_success_template = jinja2.Template(open(os.path.join('templates','comment_success.template'),'r').read())
+comment_daily_limit_template = jinja2.Template(open(os.path.join('templates','comment_daily_limit.template'),'r').read())
+comment_curation_template = jinja2.Template(open(os.path.join('templates','comment_curation.template'),'r').read())
+
+# Spanish language templates
+esp_comment_fail_template = jinja2.Template(open(os.path.join('templates','esp_comment_fail.template'),'r').read())
+esp_comment_outofstock_template = jinja2.Template(open(os.path.join('templates','esp_comment_outofstock.template'),'r').read())
+esp_comment_success_template = jinja2.Template(open(os.path.join('templates','esp_comment_success.template'),'r').read())
+esp_comment_daily_limit_template = jinja2.Template(open(os.path.join('templates','esp_comment_daily_limit.template'),'r').read())
 
 ### sqlite3 database helpers
 
@@ -259,7 +266,7 @@ def hive_posts_stream():
                 post_discord_message(ACCOUNT_NAME, message_body)
 
             # skip comments that don't include the bot's command prefix
-            if BOT_COMMAND_STR not in op['body']:
+            if BOT_COMMAND_STR not in op['body'] and ESP_BOT_COMMAND_STR not in op['body']:
                 continue
             else:
                 debug_message = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
@@ -273,6 +280,8 @@ def hive_posts_stream():
         if author_account == parent_author:
             continue
 
+        # check if spanish language comment templates should be used
+        use_spanish_templates = ESP_BOT_COMMAND_STR in op['body']
 
         message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
         post_discord_message(ACCOUNT_NAME, message_body)
@@ -312,15 +321,26 @@ def hive_posts_stream():
             if invoker_level > 0 and daily_limit_reached(author_account):
                 max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
 
-                comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
+                if use_spanish_templates:
+                    comment_body = esp_comment_daily_limit_template.render(token_name=TOKEN_NAME,
                                                           target_account=author_account,
                                                           max_daily_gifts=max_daily_gifts)
+                else:
+                    comment_body = comment_daily_limit_template.render(token_name=TOKEN_NAME,
+                                                                      target_account=author_account,
+                                                                      max_daily_gifts=max_daily_gifts)
                 message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
             else:
-                comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
-                                                        target_account=author_account,
-                                                        min_balance=min_balance,
-                                                        min_staked=min_staked)
+                if use_spanish_templates:
+                    comment_body = esp_comment_fail_template.render(token_name=TOKEN_NAME,
+                                                                target_account=author_account,
+                                                                min_balance=min_balance,
+                                                                min_staked=min_staked)
+                else:
+                    comment_body = comment_fail_template.render(token_name=TOKEN_NAME,
+                                                                target_account=author_account,
+                                                                min_balance=min_balance,
+                                                                min_staked=min_staked)
                 message_body = '%s tried to send PIZZA but didnt meet requirements.' % (author_account)
 
             post_comment(post, ACCOUNT_NAME, comment_body)
@@ -338,7 +358,10 @@ def hive_posts_stream():
             print(message_body)
             post_discord_message(ACCOUNT_NAME, message_body)
 
-            comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
+            if use_spanish_templates:
+                comment_body = esp_comment_outofstock_template.render(token_name=TOKEN_NAME)
+            else:
+                comment_body = comment_outofstock_template.render(token_name=TOKEN_NAME)
             post_comment(post, ACCOUNT_NAME, comment_body)
 
             continue
@@ -367,7 +390,12 @@ def hive_posts_stream():
             today = str(date.today())
             today_gift_count = db_count_gifts(today, author_account)
             max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
-            comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account,  today_gift_count=today_gift_count, max_daily_gifts=max_daily_gifts)
+
+            if use_spanish_templates:
+                # use Spanish template
+                comment_body = esp_comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account,  today_gift_count=today_gift_count, max_daily_gifts=max_daily_gifts)
+            else:
+                comment_body = comment_success_template.render(token_name=TOKEN_NAME, target_account=parent_author, token_amount=TOKEN_GIFT_AMOUNT, author_account=author_account,  today_gift_count=today_gift_count, max_daily_gifts=max_daily_gifts)
         post_comment(post, ACCOUNT_NAME, comment_body)
 
         #break

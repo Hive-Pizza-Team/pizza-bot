@@ -1,0 +1,6 @@
+@{{target_account}}, ¡lo siento! Necesitas más ${{token_name}} para usar este comando.
+
+El requisito mínimo es {{min_balance}} {{token_name}} líquido, y {{min_staked}} {{token_name}} estacado.
+
+Más ${{token_name}} está disponible en [Hive-Engine](https://hive-engine.com/?p=market&t={{token_name}}) o [Tribaldex](https://tribaldex.com/trade/{{token_name}})
+

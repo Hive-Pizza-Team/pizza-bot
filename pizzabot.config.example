@@ -1,6 +1,8 @@
 [Global]
 ; Command the bot should listen for
 BOT_COMMAND_STR = !TEST
+; Command for replying in Spanish
+ESP_BOT_COMMAND_STR = !ESTEST
 ; Disable to stop the bot from posting comments
 ENABLE_COMMENTS = True
 ; Account the bot will post from
