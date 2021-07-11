@@ -281,7 +281,7 @@ def hive_posts_stream():
             continue
 
         # check if spanish language comment templates should be used
-        use_spanish_templates = ESP_BOT_COMMAND_STR in op['body']
+        use_spanish_templates = 'body' in op.keys() and ESP_BOT_COMMAND_STR in op['body']
 
         message_body = '%s asked to send a slice to %s' % (author_account, parent_author)
         post_discord_message(ACCOUNT_NAME, message_body)
