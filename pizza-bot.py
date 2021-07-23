@@ -184,30 +184,43 @@ def daily_limit_reached(invoker_name, level=1):
     return False
 
 
-def get_invoker_level(invoker_name, invoker_balance, invoker_stake):
+def get_invoker_level(invoker_name):
+
+    # check how much TOKEN the invoker has
+    TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
+    wallet_token_info = Wallet(invoker_name).get_token(TOKEN_NAME)
+
+    if not wallet_token_info:
+        invoker_balance = 0
+        invoker_stake = 0
+    else:
+        invoker_balance = float(wallet_token_info['balance'])
+        invoker_stake = float(wallet_token_info['stake'])
+
+
     # does invoker meet level 2 requirements?
     min_balance = float(config['AccessLevel2']['MIN_TOKEN_BALANCE'])
     min_staked = float(config['AccessLevel2']['MIN_TOKEN_STAKED'])
 
-    if invoker_balance >= min_balance and invoker_stake >= min_staked:
+    if invoker_balance + invoker_stake >= min_balance and invoker_stake >= min_staked:
         return 2
 
     # does invoker meet level 1 requirements?
     min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
     min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
-    if invoker_balance >= min_balance and invoker_stake >= min_staked:
+    if invoker_balance + invoker_stake >= min_balance and invoker_stake >= min_staked:
         return 1
 
     return 0
 
 
-def can_gift(invoker_name, invoker_balance, invoker_stake):
+def can_gift(invoker_name):
 
     if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
         return True
 
-    level = get_invoker_level(invoker_name, invoker_balance, invoker_stake)
+    level = get_invoker_level(invoker_name)
 
     if level == 0:
         return False
@@ -297,21 +310,9 @@ def hive_posts_stream():
             print("We already replied!")
             continue
 
+        invoker_level = get_invoker_level(author_account)
 
-        # check how much TOKEN the invoker has
-        TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
-        wallet_token_info = Wallet(author_account).get_token(TOKEN_NAME)
-
-        if not wallet_token_info:
-            invoker_balance = 0
-            invoker_stake = 0
-        else:
-            invoker_balance = float(wallet_token_info['balance'])
-            invoker_stake = float(wallet_token_info['stake'])
-
-        invoker_level = get_invoker_level(author_account, invoker_balance, invoker_stake)
-
-        if not can_gift(author_account, invoker_balance, invoker_stake):
+        if not can_gift(author_account):
 
             print('Invoker doesnt meet minimum requirements')
 
@@ -351,6 +352,8 @@ def hive_posts_stream():
 
         # check how much TOKEN the bot has
         TOKEN_GIFT_AMOUNT = float(config['HiveEngine']['TOKEN_GIFT_AMOUNT'])
+        TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
+
         bot_balance = float(Wallet(ACCOUNT_NAME).get_token(TOKEN_NAME)['balance'])
         if bot_balance < TOKEN_GIFT_AMOUNT:
 
