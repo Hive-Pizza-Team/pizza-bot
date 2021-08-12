@@ -34,6 +34,7 @@ HIVE = Hive(node=[HIVE_API_NODE], keys=[config['Global']['ACCOUNT_ACTIVE_KEY']])
 HIVE.chain_params['chain_id'] = 'beeab0de00000000000000000000000000000000000000000000000000000000'
 beem.instance.set_shared_blockchain_instance(HIVE)
 ACCOUNT = Account(ACCOUNT_NAME)
+TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
 
 BOT_COMMAND_STR = config['Global']['BOT_COMMAND_STR']
 ESP_BOT_COMMAND_STR = config['Global']['ESP_BOT_COMMAND_STR']
@@ -187,7 +188,6 @@ def daily_limit_reached(invoker_name, level=1):
 def get_invoker_level(invoker_name):
 
     # check how much TOKEN the invoker has
-    TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
     wallet_token_info = Wallet(invoker_name).get_token(TOKEN_NAME)
 
     if not wallet_token_info:
@@ -352,8 +352,7 @@ def hive_posts_stream():
 
         # check how much TOKEN the bot has
         TOKEN_GIFT_AMOUNT = float(config['HiveEngine']['TOKEN_GIFT_AMOUNT'])
-        TOKEN_NAME = config['HiveEngine']['TOKEN_NAME']
-
+        
         bot_balance = float(Wallet(ACCOUNT_NAME).get_token(TOKEN_NAME)['balance'])
         if bot_balance < TOKEN_GIFT_AMOUNT:
 
