@@ -1,4 +1,4 @@
-@{{target_account}}, ¡lo siento!
+@{{target_account}}, sorry!
 
-Puedes llamar al bot {{token_name}} un máximo de {{max_daily_gifts}} veces al día.
+You can call the {{token_name}} bot a maximum of {{max_daily_gifts}} per day.
 
