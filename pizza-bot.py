@@ -312,6 +312,7 @@ def hive_posts_stream():
 
         invoker_level = get_invoker_level(author_account)
 
+        # Check if the invoker meets requirements to use the bot
         if not can_gift(author_account):
 
             print('Invoker doesnt meet minimum requirements')
@@ -319,6 +320,7 @@ def hive_posts_stream():
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
+            # Check if invoker has reached daily limits
             if invoker_level > 0 and daily_limit_reached(author_account):
                 max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
 
@@ -331,6 +333,10 @@ def hive_posts_stream():
                                                                       target_account=author_account,
                                                                       max_daily_gifts=max_daily_gifts)
                 message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
+
+                print(message_body)
+                post_discord_message(ACCOUNT_NAME, message_body)
+            # Tell the invoker how to gain access to the bot
             else:
                 if use_spanish_templates:
                     comment_body = esp_comment_fail_template.render(token_name=TOKEN_NAME,
@@ -344,9 +350,9 @@ def hive_posts_stream():
                                                                 min_staked=min_staked)
                 message_body = '%s tried to send PIZZA but didnt meet requirements.' % (author_account)
 
-            post_comment(post, ACCOUNT_NAME, comment_body)
-            print(message_body)
-            post_discord_message(ACCOUNT_NAME, message_body)
+                post_comment(post, ACCOUNT_NAME, comment_body)
+                print(message_body)
+                post_discord_message(ACCOUNT_NAME, message_body)
 
             continue
 
