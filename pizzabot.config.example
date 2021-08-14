@@ -37,6 +37,9 @@ MIN_TOKEN_BALANCE = 1
 MIN_TOKEN_STAKED = 0
 ; Maximum # of token gifts per day
 MAX_DAILY_GIFTS = 1
+; Maximum # of token gifts per day between one pair of wallets
+MAX_DAILY_GIFTS_UNIQUE = 2
+
 
 [AccessLevel2]
 ; Minimum balance required for invoking the bot
@@ -45,6 +48,8 @@ MIN_TOKEN_BALANCE = 0
 MIN_TOKEN_STAKED = 50
 ; Maximum # of token gifts per day
 MAX_DAILY_GIFTS = 20
+; Maximum # of token gifts per day between one pair of wallets
+MAX_DAILY_GIFTS_UNIQUE = 5
 
 ; Look for votes from curation account to hand out tokens
 [VoteWatcher]

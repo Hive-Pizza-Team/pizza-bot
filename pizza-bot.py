@@ -105,6 +105,21 @@ def db_count_gifts(date, invoker):
 
     return row[0]
 
+
+def db_count_gifts_unique(date, invoker, recipient):
+
+    db_conn = sqlite3.connect(SQLITE_DATABASE_FILE)
+    c = db_conn.cursor()
+
+    c.execute("SELECT count(*) FROM %s WHERE date = '%s' AND invoker = '%s' AND recipient = '%s';" % (SQLITE_GIFTS_TABLE,date,invoker,recipient))
+    row = c.fetchone()
+
+    db_conn.commit()
+    db_conn.close()
+
+    return row[0]
+
+
 def get_account_posts(account):
     acc = Account(account)
     account_history = acc.get_account_history(-1, 5000)
@@ -175,11 +190,22 @@ def daily_limit_reached(invoker_name, level=1):
     today = str(date.today())
     today_gift_count = db_count_gifts(today, invoker_name)
 
-    print(today_gift_count)
-
     access_level = 'AccessLevel%d' % level
 
     if today_gift_count >= int(config[access_level]['MAX_DAILY_GIFTS']):
+        return True
+
+    return False
+
+
+def daily_limit_unique_reached(invoker_name, recipient_name, level=1):
+
+    today = str(date.today())
+    today_gift_count_unique = db_count_gifts_unique(today, invoker_name, recipient_name)
+
+    access_level = 'AccessLevel%d' % level
+
+    if today_gift_count_unique >= int(config[access_level]['MAX_DAILY_GIFTS_UNIQUE']):
         return True
 
     return False
@@ -215,7 +241,7 @@ def get_invoker_level(invoker_name):
     return 0
 
 
-def can_gift(invoker_name):
+def can_gift(invoker_name, recipient_name):
 
     if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
         return True
@@ -225,10 +251,13 @@ def can_gift(invoker_name):
     if level == 0:
         return False
 
-    if not daily_limit_reached(invoker_name, level):
-        return True
+    if daily_limit_reached(invoker_name, level):
+        return False
 
-    return False
+    if daily_limit_unique_reached(invoker_name, recipient_name, level):
+        return False
+
+    return True
 
 
 def hive_posts_stream():
@@ -285,13 +314,18 @@ def hive_posts_stream():
                 debug_message = 'Found %s command: https://peakd.com/%s in block %s' % (BOT_COMMAND_STR, reply_identifier, op['block_num'])
                 print(debug_message)
 
-
-        if not parent_author:
-            continue
-
         # no self-tipping
         if author_account == parent_author:
             continue
+
+        # bail out if the parent_author (recipient) is missing
+        if not parent_author:
+            continue
+
+        # skip tips sent to the bot itself
+        if parent_author == ACCOUNT_NAME:
+            continue
+
 
         # check if spanish language comment templates should be used
         use_spanish_templates = 'body' in op.keys() and ESP_BOT_COMMAND_STR in op['body']
@@ -313,15 +347,15 @@ def hive_posts_stream():
         invoker_level = get_invoker_level(author_account)
 
         # Check if the invoker meets requirements to use the bot
-        if not can_gift(author_account):
+        if not can_gift(author_account, parent_author):
 
             print('Invoker doesnt meet minimum requirements')
 
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
             min_staked = float(config['AccessLevel1']['MIN_TOKEN_STAKED'])
 
-            # Check if invoker has reached daily limits
-            if invoker_level > 0 and daily_limit_reached(author_account):
+            if invoker_level > 0 and daily_limit_reached(author_account,invoker_level):
+                # Check if invoker has reached daily limits
                 max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
 
                 if use_spanish_templates:
@@ -334,10 +368,18 @@ def hive_posts_stream():
                                                                       max_daily_gifts=max_daily_gifts)
                 message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
 
+                # disabled comments for this path to save RCs
                 print(message_body)
                 post_discord_message(ACCOUNT_NAME, message_body)
-            # Tell the invoker how to gain access to the bot
+
+            elif invoker_level > 0 and daily_limit_unique_reached(author_account, parent_author,invoker_level):
+                # Check if daily limit for unique tips has been reached
+                message_body = '%s tried to send PIZZA but reached the daily limit.' % (author_account)
+                print(message_body)
+                post_discord_message(ACCOUNT_NAME, message_body)
+
             else:
+                # Tell the invoker how to gain access to the bot
                 if use_spanish_templates:
                     comment_body = esp_comment_fail_template.render(token_name=TOKEN_NAME,
                                                                 target_account=author_account,
