@@ -326,7 +326,6 @@ def hive_posts_stream():
         if parent_author == ACCOUNT_NAME:
             continue
 
-
         # check if spanish language comment templates should be used
         use_spanish_templates = 'body' in op.keys() and ESP_BOT_COMMAND_STR in op['body']
 
