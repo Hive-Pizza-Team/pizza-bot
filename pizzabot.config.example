@@ -29,6 +29,7 @@ TOKEN_GIFT_AMOUNT = 0.01
 TRANSFER_MEMO = Enjoy a slice of $PIZZA on us! Learn more about the $PIZZA project @ https://hive.pizza
 ; List of users to allow to bypass daily gift limits
 GIFT_ALLOW_LIST = user1,user2,user3
+GIFT_BLOCK_LIST = user1,user2,user3
 
 [AccessLevel1]
 ; Minimum balance required for invoking the bot
