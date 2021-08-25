@@ -241,15 +241,20 @@ def get_invoker_level(invoker_name):
     return 0
 
 
+def is_block_listed(name):
+
+    return name in config['HiveEngine']['GIFT_BLOCK_LIST'].split(',')
+
+
 def can_gift(invoker_name, recipient_name):
 
     if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
         return True
 
-    if invoker_name in config['HiveEngine']['GIFT_BLOCK_LIST'].split(','):
+    if is_block_listed(invoker_name):
         return False
 
-    if recipient_name in config['HiveEngine']['GIFT_BLOCK_LIST'].split(','):
+    if is_block_listed(recipient_name):
         return False
 
     level = get_invoker_level(invoker_name)
@@ -351,9 +356,13 @@ def hive_posts_stream():
 
         invoker_level = get_invoker_level(author_account)
 
+        if is_block_listed(author_account) or is_block_listed(parent_author):
+            post_discord_message(ACCOUNT_NAME, 'Nope')
+            print('Invoker or recipient is on the block list')
+            continue
+
         # Check if the invoker meets requirements to use the bot
         if not can_gift(author_account, parent_author):
-
             print('Invoker doesnt meet minimum requirements')
 
             min_balance = float(config['AccessLevel1']['MIN_TOKEN_BALANCE'])
