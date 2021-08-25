@@ -246,10 +246,10 @@ def can_gift(invoker_name, recipient_name):
     if invoker_name in config['HiveEngine']['GIFT_ALLOW_LIST']:
         return True
 
-    if invoker_name in config['HiveEngine']['GIFT_BLOCK_LIST']:
+    if invoker_name in config['HiveEngine']['GIFT_BLOCK_LIST'].split(','):
         return False
 
-    if recipient_name in config['HiveEngine']['GIFT_BLOCK_LIST']:
+    if recipient_name in config['HiveEngine']['GIFT_BLOCK_LIST'].split(','):
         return False
 
     level = get_invoker_level(invoker_name)
