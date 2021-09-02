@@ -453,7 +453,10 @@ def hive_posts_stream():
         else:
             today = str(date.today())
             today_gift_count = db_count_gifts(today, author_account)
-            max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
+            if invoker_level > 0:
+                max_daily_gifts = config['AccessLevel%s' % invoker_level]['MAX_DAILY_GIFTS']
+            else:
+                max_daily_gifts = 0
 
             if use_spanish_templates:
                 # use Spanish template
